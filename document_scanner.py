@@ -3,16 +3,19 @@ import cv2 as cv
 from PIL import Image
 from fpdf import FPDF
 
-"""  Document Scanner Using OpenCV-Python  """
-
+"""  
+Image-Based Document Scanner Using OpenCV-Python  
+Sean Kennedy
+GitHub: @skennedy735
+"""
 
 def resize(image):
-    """Resizes the image so that it can be properly displayed"""
+    """Resizes the image to a presentable size"""
     
     original_height=image.shape[0]
     original_width=image.shape[1]
     ratio=original_width/original_height
-    resized_image=cv.resize(image,(int(1000*ratio),1000))
+    resized_image=cv.resize(image,(int(800*ratio),800))
     
     return resized_image
 
@@ -41,8 +44,12 @@ def get_contour(image):
         # if the contour has four points, the document is assumed to be found
         if len(edge_points) == 4:
             doc_contour = edge_points
-            print("Document edges found.")
+            print("Rectangular contour detected.")
             break
+    
+    if len(edge_points) != 4:
+        return 0, 0
+    
     # draw the document contour over the original image
     cv.drawContours(original_image, [doc_contour], -1, (255, 0, 0), 5)
     
@@ -82,19 +89,33 @@ def rect_transform(image, pts):
     transformed_image = cv.warpPerspective(image, M, (maxWidth, maxHeight))
     return transformed_image
 
+def kernel_sharpen(image):
+    """Creates and applies sharpening kernel filter to image"""
+    
+    # create sharpening kernel
+    kernel = np.ones( (9,9), np.float32) / -100.0
+    kernel[4,4] = 1.8
+    # apply kernel filter to the image parameter
+    filtered_image = cv.filter2D(image, -1, kernel)
+    
+    # return sharpened image
+    return filtered_image
+
 def adaptive_threshold(adjusted_image):
-    """Applies adaptive threshold to image"""
+    """Applies adaptive threshold to image (not used in main function)"""
     
     # convert image to grayscale
     grayscale = cv.cvtColor(adjusted_image, cv.COLOR_BGR2GRAY)
     # apply adaptive threshold
     adap = cv.adaptiveThreshold(grayscale,255,cv.ADAPTIVE_THRESH_GAUSSIAN_C,\
-            cv.THRESH_BINARY,13,6)
+            cv.THRESH_BINARY,11,5)
     
+    #return adap
     return adap
 
 def jpg_to_pdf(image_name):
-    """Converts a JPEG file into a PDF file saved in the current directory"""
+    """Converts a JPG file into a PDF file saved in the current directory.
+    NOTE: image_name string should not include .jpg file extension."""
     
     # create and format PDF to fit image
     image = Image.open(image_name+".jpg")
@@ -108,34 +129,44 @@ def jpg_to_pdf(image_name):
 def main():
 
     # Find the image of the document to be scanned.
-    image_file=input("Enter file path of image (JPG) to be scanned: ")
-    image=cv.imread(image_file)
-    
-    # Resize image of document.
-    resized_image=resize(image)
+    #image_file = input("Enter file path of image (JPG) to be scanned: ")
+    image = cv.imread("image.jpg")
     
     # Find and draw contour for the document.
-    doc_contour, contour_image = get_contour(resized_image)
+    doc_contour, contour_image = get_contour(image)
     
-    # Show original image with contour drawn on edges of document.
-    cv.imshow("Contour",contour_image)
-    
-    # Apply perspective transformation to the image.
-    transformed = rect_transform(resized_image, doc_contour.reshape(4, 2))
-    cv.imshow("Transformed",transformed)
-    # Apply adaptive threshold to the final image.
-    final_image = adaptive_threshold(transformed)
-    
-    cv.imshow("final_image",final_image)
-    # Save the JPG image in the current directory.
-    cv.imwrite("new_document.jpg",final_image)
-    
-    # Convert the final image to a PDF.
-    jpg_to_pdf("new_document")
-    
-    # Display images until a key is pressed.
-    cv.waitKey(0)
-    cv.destroyAllWindows()
+    # Check that a rectangular contour was found
+    try:
+        if doc_contour==0:
+            print("Rectangular contour could not be detected. \
+                  Program terminated.")
+    except ValueError:
+        # Show original image with contour drawn on edges of document.
+        cv.imshow("Contour",contour_image)
+        
+        # Apply perspective transformation to the image.
+        transformed = rect_transform(image, doc_contour.reshape(4, 2))
+        
+        cv.imshow("Transformed",transformed)
+        
+        # Resize image of document.
+        resized_image = resize(transformed)
+        cv.imshow("Resized",resized_image)
+        
+        # Apply grayscale and kernel sharpening to image
+        final_image = cv.cvtColor(resized_image, cv.COLOR_BGR2GRAY)
+        final_image = kernel_sharpen(final_image)
+        
+        cv.imshow("final_image",final_image)
+        # Save the JPG image in the current directory.
+        cv.imwrite("scanned_document.jpg",final_image)
+        
+        # Convert the final image to a PDF.
+        jpg_to_pdf("scanned_document")
+        
+        # Display images until a key is pressed.
+        cv.waitKey(0)
+        cv.destroyAllWindows()
         
 if __name__ == "__main__":
     main()
