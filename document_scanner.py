@@ -39,7 +39,7 @@ def get_contour(image):
     for contour in contours:
         # approximate the contour
         edge = cv.arcLength(contour, True)
-        edge_points = cv.approxPolyDP(contour, 0.02 * edge, True)
+        edge_points = cv.approxPolyDP(contour, 0.025 * edge, True)
      
         # if the contour has four points, the document is assumed to be found
         if len(edge_points) == 4:
@@ -59,34 +59,31 @@ def get_contour(image):
 
 def rect_transform(image, pts):
     """Transforms the image to obtain a top-down view of the document"""
-    # https://www.pyimagesearch.com/2014/08/25/4-
-    # point-opencv-getperspective-transform-example/
     
-    # sum coordinates of each point to find top-left and bottom-right corners
+    # assign rectangular coordinates to their specific corners
     s = pts.sum(axis = 1)
+    diff = np.diff(pts, axis = 1)
     tl = pts[np.argmin(s)]
     br = pts[np.argmax(s)]
-	 # subtract coordinates for each point to find top-right and bottom-left
-    diff = np.diff(pts, axis = 1)
     tr = pts[np.argmin(diff)]
     bl = pts[np.argmax(diff)]
-    # place corner coordinates in an array
+    # place corner coordinates in a sorted array
     rect=np.array([tl, tr, br, bl], dtype= "float32")
     # compute the width of the new image
-    widthA = np.sqrt(((br[0] - bl[0]) ** 2) + ((br[1] - bl[1]) ** 2))
-    widthB = np.sqrt(((tr[0] - tl[0]) ** 2) + ((tr[1] - tl[1]) ** 2))
-    maxWidth = max(int(widthA), int(widthB))
+    bottom_width = np.sqrt(((br[0] - bl[0]) ** 2) + ((br[1] - bl[1]) ** 2))
+    top_width = np.sqrt(((tr[0] - tl[0]) ** 2) + ((tr[1] - tl[1]) ** 2))
+    width = max(int(bottom_width), int(top_width))
     # compute the height of the new image
-    heightA = np.sqrt(((tr[0] - br[0]) ** 2) + ((tr[1] - br[1]) ** 2))
-    heightB = np.sqrt(((tl[0] - bl[0]) ** 2) + ((tl[1] - bl[1]) ** 2))
-    maxHeight = max(int(heightA), int(heightB))
+    right_height = np.sqrt(((tr[0] - br[0]) ** 2) + ((tr[1] - br[1]) ** 2))
+    left_height = np.sqrt(((tl[0] - bl[0]) ** 2) + ((tl[1] - bl[1]) ** 2))
+    height = max(int(right_height), int(left_height))
     # construct destination points for transformed image
-    dst = np.array([[0, 0],[maxWidth - 1, 0],[maxWidth - 1, maxHeight - 1],
-                    [0, maxHeight - 1]], dtype = "float32")
+    target = np.array([[0, 0],[width - 1, 0],[width - 1, height - 1],
+                    [0, height - 1]], dtype = "float32")
     
-    # compute the perspective transform matrix, apply it, and return the image
-    M = cv.getPerspectiveTransform(rect, dst)
-    transformed_image = cv.warpPerspective(image, M, (maxWidth, maxHeight))
+    # apply the transformation and return the image
+    M = cv.getPerspectiveTransform(rect, target)
+    transformed_image = cv.warpPerspective(image, M, (width, height))
     return transformed_image
 
 def kernel_sharpen(image):
@@ -152,7 +149,6 @@ def main():
         
         # apply perspective transformation and show the resulting image
         transformed = rect_transform(image, doc_contour.reshape(4, 2))
-        cv.imshow("Transformed Image",transformed)
         
         # resize the image of the document
         resized_image = resize(transformed, 842)
