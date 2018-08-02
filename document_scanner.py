@@ -9,13 +9,13 @@ Sean Kennedy
 GitHub: @skennedy735
 """
 
-def resize(image):
-    """Resizes the image to a presentable size"""
+def resize(image, size):
+    """Resizes the image to the desired size"""
     
     original_height=image.shape[0]
     original_width=image.shape[1]
     ratio=original_width/original_height
-    resized_image=cv.resize(image,(int(800*ratio),800))
+    resized_image=cv.resize(image,(int(size*ratio),size))
     
     return resized_image
 
@@ -44,7 +44,7 @@ def get_contour(image):
         # if the contour has four points, the document is assumed to be found
         if len(edge_points) == 4:
             doc_contour = edge_points
-            print("Rectangular contour detected.")
+            print("\nRectangular contour detected.")
             break
     
     if len(edge_points) != 4:
@@ -93,8 +93,8 @@ def kernel_sharpen(image):
     """Creates and applies sharpening kernel filter to image"""
     
     # create sharpening kernel
-    kernel = np.ones( (9,9), np.float32) / -100.0
-    kernel[4,4] = 1.8
+    kernel = np.ones( (9,9), np.float32) / -90.0
+    kernel[4,4] = 2.0
     # apply kernel filter to the image parameter
     filtered_image = cv.filter2D(image, -1, kernel)
     
@@ -114,8 +114,8 @@ def adaptive_threshold(adjusted_image):
     return adap
 
 def jpg_to_pdf(image_name):
-    """Converts a JPG file into a PDF file saved in the current directory.
-    NOTE: image_name string should not include .jpg file extension."""
+    """Converts a JPG file into a PDF file saved in the current directory
+    NOTE: image_name string should not include .jpg file extension"""
     
     # create and format PDF to fit image
     image = Image.open(image_name+".jpg")
@@ -128,43 +128,47 @@ def jpg_to_pdf(image_name):
 
 def main():
 
-    # Find the image of the document to be scanned.
-    #image_file = input("Enter file path of image (JPG) to be scanned: ")
-    image = cv.imread("image.jpg")
+    # find the image of the document to be scanned
+    image_file = input("Enter file path of image (JPG) to be scanned: ")
+    image = cv.imread(image_file)
     
-    # Find and draw contour for the document.
+    # resize original image to appropriate size for finding document contour
+    image = resize(image, 1000)
+    
+    # find and draw contour for the document.
     doc_contour, contour_image = get_contour(image)
     
-    # Check that a rectangular contour was found
+    # check that a rectangular contour was found
     try:
         if doc_contour==0:
-            print("Rectangular contour could not be detected. \
+            print("\nRectangular contour could not be detected. \
                   Program terminated.")
     except ValueError:
-        # Show original image with contour drawn on edges of document.
-        cv.imshow("Contour",contour_image)
+        scanned_document=input("Enter name of new scanned document (Do not \
+                                include any file extensions in the name): ")
         
-        # Apply perspective transformation to the image.
+        # show original image with contour drawn on edges of document
+        cv.imshow("Document Edges",contour_image)
+        
+        # apply perspective transformation and show the resulting image
         transformed = rect_transform(image, doc_contour.reshape(4, 2))
+        cv.imshow("Transformed Image",transformed)
         
-        cv.imshow("Transformed",transformed)
+        # resize the image of the document
+        resized_image = resize(transformed, 842)
         
-        # Resize image of document.
-        resized_image = resize(transformed)
-        cv.imshow("Resized",resized_image)
-        
-        # Apply grayscale and kernel sharpening to image
+        # apply grayscale and kernel sharpening to image and show the result
         final_image = cv.cvtColor(resized_image, cv.COLOR_BGR2GRAY)
         final_image = kernel_sharpen(final_image)
+        cv.imshow("Final Document Image",final_image)
         
-        cv.imshow("final_image",final_image)
-        # Save the JPG image in the current directory.
-        cv.imwrite("scanned_document.jpg",final_image)
+        # save the JPG image in the current directory
+        cv.imwrite(scanned_document+".jpg",final_image)
         
-        # Convert the final image to a PDF.
-        jpg_to_pdf("scanned_document")
+        # convert the final image into a PDF
+        jpg_to_pdf(scanned_document)
         
-        # Display images until a key is pressed.
+        # display images until a key is pressed.
         cv.waitKey(0)
         cv.destroyAllWindows()
         
