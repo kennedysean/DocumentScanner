@@ -1,5 +1,5 @@
 # DocumentScanner
-Image-based document scanner built using OpenCV-Python
+Image-based document scanner built using OpenCV (Open Source Computer Vision Library) and Python
   
   
 ## Summary 
