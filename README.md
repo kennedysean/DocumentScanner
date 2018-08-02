@@ -9,4 +9,11 @@ The program requests that the user input the file path to the image of the docum
 ## Algorithm
 The program must first detect all of the edges in the image. This can be done using the Canny Edge Detection algorithm provided by OpenCV after first converting the image to grayscale and applying a Gaussian filter to reduce noise. The next step is to use the edged image to detect the edges of the document. This can be done by using OpenCV to find all of the contours in the edged image and finding the largest contour such that the contour is defined by four edges. This is done under the safe assumption that the document is rectangular and the main focus of the image. Once the document contour has been found, the next step is to apply a transformation to the image to obtain a cropped, top-down view of the document. This is done by identifying the specific corners of the document contour, finding the target corners of the document using the calculated height and width, and using OpenCV Perspective Transform to calculate and apply the tranformation matrix to the image. The last step is to apply a kernel sharpening filter to give the image a sharper appearance and convert the final image to a PDF.  
   
-NOTE: I had originally used adaptive thresholding in the program to give the PDF a sharper contrast. However, I found that a static thresholding filter wasn't consistent across different image qualities, so I decided to use kernel sharpening instead to provide a similar effect. I still leave the adaptive thresholding function in the source code, but do not use it in the main program.
+NOTE: I had originally used adaptive thresholding in the program to give the PDF a sharper contrast. However, I found that a static thresholding filter wasn't consistent across different image qualities, so I decided to use kernel sharpening instead to provide a similar effect. I still leave the adaptive thresholding function in the source code, but do not use it in the main program.  
+  
+  
+## Python Libraries
+* OpenCV (Open Source Computer Vision Library)
+* NumPy
+* Python Imaging Library (PIL)
+* PyFPDF
