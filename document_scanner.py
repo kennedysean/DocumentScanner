@@ -12,10 +12,10 @@ GitHub: @skennedy735
 def resize(image, size):
     """Resizes the image to the desired size"""
     
-    original_height=image.shape[0]
-    original_width=image.shape[1]
-    ratio=original_width/original_height
-    resized_image=cv.resize(image,(int(size*ratio),size))
+    original_height = image.shape[0]
+    original_width = image.shape[1]
+    ratio = original_width/original_height
+    resized_image = cv.resize(image,(int(size*ratio),size))
     
     return resized_image
 
@@ -25,11 +25,11 @@ def get_contour(image):
     drawn over the image"""
     
     # make a copy of the original image to be used later in the function
-    original_image=image.copy()
+    original_image = image.copy()
     # apply grayscale, blur the image, and find the edges
-    image=cv.cvtColor(image,cv.COLOR_BGR2GRAY)
-    image=cv.GaussianBlur(image,(5,5),0)
-    image=cv.Canny(image,75,200)
+    image = cv.cvtColor(image,cv.COLOR_BGR2GRAY)
+    image = cv.GaussianBlur(image,(5,5),0)
+    image = cv.Canny(image,75,200)
     # find all contours in image
     contours_image, contours, hierarchy = cv.findContours(image,cv.RETR_LIST, \
                                                     cv.CHAIN_APPROX_SIMPLE)
@@ -51,7 +51,7 @@ def get_contour(image):
         return 0, 0
     
     # draw the document contour over the original image
-    cv.drawContours(original_image, [doc_contour], -1, (255, 0, 0), 5)
+    cv.drawContours(original_image, [doc_contour], -1, (255, 0, 0), 3)
     
     # return the coordinates of the document contour and the original image 
     # with the contour lines drawn over top of the image
@@ -68,7 +68,7 @@ def rect_transform(image, pts):
     tr = pts[np.argmin(diff)]
     bl = pts[np.argmax(diff)]
     # place corner coordinates in a sorted array
-    rect=np.array([tl, tr, br, bl], dtype= "float32")
+    rect = np.array([tl, tr, br, bl], dtype= "float32")
     # compute the width of the new image
     bottom_width = np.sqrt(((br[0] - bl[0]) ** 2) + ((br[1] - bl[1]) ** 2))
     top_width = np.sqrt(((tr[0] - tl[0]) ** 2) + ((tr[1] - tl[1]) ** 2))
