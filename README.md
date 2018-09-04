@@ -15,5 +15,5 @@ NOTE: I had originally used adaptive thresholding in the program to give the PDF
 ## Python Libraries
 * OpenCV (Open Source Computer Vision Library)
 * NumPy
-* Python Imaging Library (PIL)
+* Pillow (Python Imaging Library fork)
 * PyFPDF
