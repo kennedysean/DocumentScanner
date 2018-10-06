@@ -6,7 +6,7 @@ from fpdf import FPDF
 """  
 Image-Based Document Scanner Using OpenCV-Python  
 Sean Kennedy
-GitHub: @skennedy735
+https://github.com/kennedysean/DocumentScanner
 """
 
 def resize(image, size):
@@ -141,7 +141,7 @@ def main():
             print("\nRectangular contour could not be detected. \
                   Program terminated.")
     except ValueError:
-        scanned_document=input("Enter name of new scanned document (Do not \
+        scanned_document = input("Enter name of new scanned document (Do not \
                                 include any file extensions in the name): ")
         
         # show original image with contour drawn on edges of document
