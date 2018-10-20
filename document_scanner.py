@@ -3,12 +3,7 @@ from PIL import Image
 import cv2 as cv
 import numpy as np
 
-"""  
-Image-Based Document Scanner Using OpenCV-Python  
-Sean Kennedy, Michael Montelone
-GitHub: @skennedy735, @MonteCodes
-"""
-
+""" Image-Based Document Scanner Using OpenCV-Python """
 
 def resize(image, size):
     """Resizes the image to the desired size"""
@@ -140,7 +135,7 @@ def main():
         if doc_contour == 0:
             print('\nRectangular contour could not be detected. Program terminated.')
     except ValueError:
-        scanned_document = input('Enter name of new scanned document (Do not include file extensions): ')
+        scanned_document = input('Enter name of new scanned document (Do not include the file extension): ')
 
         # show original image with contour drawn on edges of document
         cv.imshow('Document Edges', contour_image)
